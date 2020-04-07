@@ -1,3 +1,4 @@
+![logo](https://raw.githubusercontent.com/transfarmer/deterministic-loot/1.12.2/src/main/resources/assets/deterministicloot/textures/logo.png)
 ## features
 - deterministic item drops from blocks (affected by fortune only if dropped by ores);
 - deterministic experience drops from blocks;
