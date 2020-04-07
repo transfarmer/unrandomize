@@ -1,0 +1,7 @@
+[{
+    "modid": "deterministicloot",
+    "name": "deterministic loot",
+    "description": "a mod that removes randomness from loot and item drops",
+    "logoFile": "assets/deterministicloot/textures/logo.png",
+    "authorList": ["transfarmer"]
+}]
