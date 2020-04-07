@@ -63,15 +63,22 @@ public class BlockDrops {
         if (player != null) {
             final UUID playerID = player.getPersistentID();
 
+            // initialize itemProgress
             if (!BLOCK_ITEM_DROP_PROGRESS.containsKey(playerID)) {
-                final HashMap<Block, Double> data = new HashMap<>();
+                final Map<Block, Double> data = new HashMap<>();
                 data.put(block, itemProgress = 0);
 
                 BLOCK_ITEM_DROP_PROGRESS.put(playerID, data);
             } else {
-                itemProgress = BLOCK_ITEM_DROP_PROGRESS.get(playerID).get(block);
-            }
+                 Map<Block, Double> data = BLOCK_ITEM_DROP_PROGRESS.get(playerID);
 
+                if (!data.containsKey(block)) {
+                    data = new HashMap<>();
+                    data.put(block, itemProgress = 0);
+                } else {
+                    itemProgress = data.get(block);
+                }
+            }
 
             if (!OreDictionary.getOreName(Block.getStateId(blockState)).matches("^ore")) {
                 itemProgress += 1F / (fortuneLevel + 2) + (fortuneLevel + 1) / 2F - 1;
@@ -82,7 +89,8 @@ public class BlockDrops {
         }
 
         do {
-            drops.add(new ItemStack(block, (int) itemDrops));
+            final int itemsDropped = (int) itemDrops;
+            drops.add(new ItemStack(block, itemsDropped));
 
             if (itemProgress >= 1) {
                 itemProgress--;
