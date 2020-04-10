@@ -1,2 +1,0 @@
-v1	named	intermediary
-METHOD	transfarmer/unrandomize/mixin/block/entity/LootableContainerBlockEntityMixin	(Lnet/minecraft/world/BlockView;Ljava/util/Random;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/Identifier;)V	setLootTable	method_11287
