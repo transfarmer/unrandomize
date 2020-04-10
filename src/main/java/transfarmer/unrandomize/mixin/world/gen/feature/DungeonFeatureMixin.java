@@ -7,6 +7,7 @@ import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.block.entity.MobSpawnerBlockEntity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.loot.LootTables;
 import net.minecraft.structure.StructurePiece;
 import net.minecraft.util.math.BlockPos;
@@ -22,24 +23,27 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import java.util.Iterator;
 import java.util.Random;
 import java.util.function.Function;
 
 @Mixin(DungeonFeature.class)
-public class DungeonFeatureMixin extends Feature<DefaultFeatureConfig> {
+public abstract class DungeonFeatureMixin extends Feature<DefaultFeatureConfig> {
     @Shadow
     @Final
     private static final Logger LOGGER = null;
     @Shadow
     @Final
+    private static final EntityType<?>[] MOB_SPAWNER_ENTITIES = null;
+    @Shadow
+    @Final
     private static final BlockState AIR = null;
+    private int entity = 0;
 
     public DungeonFeatureMixin(final Function<Dynamic<?>, ? extends DefaultFeatureConfig> configDeserializer) {
         super(configDeserializer);
     }
 
-    public boolean generate(IWorld iWorld, ChunkGenerator<? extends ChunkGeneratorConfig> chunkGenerator, Random rand, BlockPos blockPos, DefaultFeatureConfig defaultFeatureConfig) {
+    public boolean generate(final IWorld world, final ChunkGenerator<? extends ChunkGeneratorConfig> chunkGenerator, final Random random, final BlockPos blockPos, final DefaultFeatureConfig defaultFeatureConfig) {
         int i = 3;
         int j = 2;
         int k = -j - 1;
@@ -59,7 +63,7 @@ public class DungeonFeatureMixin extends Feature<DefaultFeatureConfig> {
             for (w = -1; w <= 4; ++w) {
                 for (x = p; x <= q; ++x) {
                     blockPos3 = blockPos.add(v, w, x);
-                    Material material = iWorld.getBlockState(blockPos3).getMaterial();
+                    Material material = world.getBlockState(blockPos3).getMaterial();
                     boolean bl = material.isSolid();
                     if (w == -1 && !bl) {
                         return false;
@@ -69,7 +73,7 @@ public class DungeonFeatureMixin extends Feature<DefaultFeatureConfig> {
                         return false;
                     }
 
-                    if ((v == k || v == l || x == p || x == q) && w == 0 && iWorld.isAir(blockPos3) && iWorld.isAir(blockPos3.up())) {
+                    if ((v == k || v == l || x == p || x == q) && w == 0 && world.isAir(blockPos3) && world.isAir(blockPos3.up())) {
                         ++r;
                     }
                 }
@@ -84,16 +88,16 @@ public class DungeonFeatureMixin extends Feature<DefaultFeatureConfig> {
                     for (x = p; x <= q; ++x) {
                         blockPos3 = blockPos.add(v, w, x);
                         if (v != k && w != -1 && x != p && v != l && w != 4 && x != q) {
-                            if (iWorld.getBlockState(blockPos3).getBlock() != Blocks.CHEST) {
-                                iWorld.setBlockState(blockPos3, AIR, 2);
+                            if (world.getBlockState(blockPos3).getBlock() != Blocks.CHEST) {
+                                world.setBlockState(blockPos3, AIR, 2);
                             }
-                        } else if (blockPos3.getY() >= 0 && !iWorld.getBlockState(blockPos3.down()).getMaterial().isSolid()) {
-                            iWorld.setBlockState(blockPos3, AIR, 2);
-                        } else if (iWorld.getBlockState(blockPos3).getMaterial().isSolid() && iWorld.getBlockState(blockPos3).getBlock() != Blocks.CHEST) {
+                        } else if (blockPos3.getY() >= 0 && !world.getBlockState(blockPos3.down()).getMaterial().isSolid()) {
+                            world.setBlockState(blockPos3, AIR, 2);
+                        } else if (world.getBlockState(blockPos3).getMaterial().isSolid() && world.getBlockState(blockPos3).getBlock() != Blocks.CHEST) {
                             if (w == -1 && cobblestone % 4 != 0) {
-                                iWorld.setBlockState(blockPos3, Blocks.MOSSY_COBBLESTONE.getDefaultState(), 2);
+                                world.setBlockState(blockPos3, Blocks.MOSSY_COBBLESTONE.getDefaultState(), 2);
                             } else {
-                                iWorld.setBlockState(blockPos3, Blocks.COBBLESTONE.getDefaultState(), 2);
+                                world.setBlockState(blockPos3, Blocks.COBBLESTONE.getDefaultState(), 2);
                             }
 
                             cobblestone++;
@@ -102,36 +106,47 @@ public class DungeonFeatureMixin extends Feature<DefaultFeatureConfig> {
                 }
             }
 
-            int counter = 0;
+            int jCounter = 1;
+            int oCounter = 1;
 
             for (v = 0; v < 2; ++v) {
                 for (w = 0; w < 3; ++w) {
-                    x = blockPos.getX() + random.nextInt(j * 2 + 1) - j;
-                    int ab = blockPos.getY();
-                    int ac = blockPos.getZ() + random.nextInt(o * 2 + 1) - o;
-                    BlockPos blockPos4 = new BlockPos(x, ab, ac);
-                    if (iWorld.isAir(blockPos4)) {
-                        int ad = 0;
-                        Iterator var23 = Direction.Type.HORIZONTAL.iterator();
+                    x = blockPos.getX() + jCounter;
+                    jCounter += Math.signum(jCounter);
 
-                        while (var23.hasNext()) {
-                            Direction direction = (Direction) var23.next();
-                            if (iWorld.getBlockState(blockPos4.offset(direction)).getMaterial().isSolid()) {
+                    if (jCounter % j == 0) {
+                        jCounter = (int) -Math.signum(jCounter);
+                    }
+
+                    int ab = blockPos.getY();
+                    int ac = blockPos.getZ() + oCounter;
+                    oCounter += Math.signum(oCounter);
+
+                    if (oCounter % o == 0) {
+                        oCounter = (int) -Math.signum(oCounter);
+                    }
+
+                    BlockPos blockPos4 = new BlockPos(x, ab, ac);
+                    if (world.isAir(blockPos4)) {
+                        int ad = 0;
+
+                        for (final Direction direction : Direction.Type.HORIZONTAL) {
+                            if (world.getBlockState(blockPos4.offset(direction)).getMaterial().isSolid()) {
                                 ++ad;
                             }
                         }
 
                         if (ad == 1) {
-                            iWorld.setBlockState(blockPos4, StructurePiece.method_14916(iWorld, blockPos4, Blocks.CHEST.getDefaultState()), 2);
-                            LootableContainerBlockEntity.setLootTable(iWorld, random, blockPos4, LootTables.SIMPLE_DUNGEON_CHEST);
+                            world.setBlockState(blockPos4, StructurePiece.method_14916(world, blockPos4, Blocks.CHEST.getDefaultState()), 2);
+                            LootableContainerBlockEntity.setLootTable(world, random, blockPos4, LootTables.SIMPLE_DUNGEON_CHEST);
                             break;
                         }
                     }
                 }
             }
 
-            iWorld.setBlockState(blockPos, Blocks.SPAWNER.getDefaultState(), 2);
-            BlockEntity blockEntity = iWorld.getBlockEntity(blockPos);
+            world.setBlockState(blockPos, Blocks.SPAWNER.getDefaultState(), 2);
+            BlockEntity blockEntity = world.getBlockEntity(blockPos);
             if (blockEntity instanceof MobSpawnerBlockEntity) {
                 ((MobSpawnerBlockEntity) blockEntity).getLogic().setEntityId(this.getMobSpawnerEntity(random));
             } else {
@@ -142,5 +157,14 @@ public class DungeonFeatureMixin extends Feature<DefaultFeatureConfig> {
         } else {
             return false;
         }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private EntityType<?> getMobSpawnerEntity(final Random random) {
+        if (MOB_SPAWNER_ENTITIES.length > 1) {
+            this.entity %= MOB_SPAWNER_ENTITIES.length - 1;
+        }
+
+        return MOB_SPAWNER_ENTITIES[this.entity++];
     }
 }

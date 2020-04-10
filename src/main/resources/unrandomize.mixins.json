@@ -4,9 +4,12 @@
     "compatibilityLevel": "JAVA_8",
     "mixins": [
         "block.entity.LootableContainerBlockEntityMixin",
-        "world.gen.feature.BonusChestFeatureMixin"
+        "world.gen.feature.BonusChestFeatureMixin",
+        "world.gen.feature.DungeonFeatureMixin"
     ],
     "client": [
+        "client.gui.screen.world.CreateWorldScreenMixin",
+        "client.gui.screen.world.Mode"
     ],
     "injectors": {
         "defaultRequire": 1
